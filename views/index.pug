@@ -1,0 +1,227 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    meta(name='author', content='Jan Speckamp (428367)')
+    title La Vuelta a Espana - Roadmap
+
+    // Page Content [parsed by Pug]
+    script.
+        var loaded_object_id = "#{objects}".split(',');
+
+    // JAVASCRIPTS
+    script(src='https://code.jquery.com/jquery-3.2.1.min.js')
+    script(src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js')
+    script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
+    script(src='https://unpkg.com/leaflet@1.0.3/dist/leaflet.js')
+    script(src='/javascripts/leaflet-routing-machine.js')
+
+    script(src = '/javascripts/index.js')
+    script(src = '/javascripts/map.js')
+
+    // STYLESHEETS
+    link(rel='stylesheet', href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css')
+    link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css', integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u', crossorigin='anonymous')
+    link(rel='stylesheet', href='https://unpkg.com/leaflet@1.0.3/dist/leaflet.css')
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/leaflet-routing-machine.css')
+
+
+
+
+  body
+    .container-fluid
+      .col-md-12
+        h1 La Vuelta a Espana - Roadmap
+        ul.nav.nav-tabs
+          li.active(role='presentation' id='li_start')
+            a(href='#' onclick='toggleView("start")') Start
+          li(role='presentation' id='li_map')
+            a(href='#' onclick='toggleView("map")') Map
+          li(role='presentation' id='li_search')
+            a(href='#' onclick='toggleView("search")') Search
+          li(role='presentation' id='li_imprint')
+            a(href='#' onclick='toggleView("imprint")') Imprint
+        div#start
+          h2 Willkommen
+          p
+           | Bla bla bla. Weil es die Aufgabenstellung verlangt, sehen Sie erst diese Startseite, anstatt ganz modern gleich die Karte serviert zu bekommen.
+        div#menuitem_map.hidden
+          #content.col-md-8
+            // Leaflet map div
+            #map
+
+          #menu.col-md-4
+            h2 Tools
+            // form, on submit event showExternalFile() is called and the default action (i.e. submitting the form) prevented
+            form.form-inline(onsubmit='event.preventDefault(); showExternalFile();')
+              input#externalfile.form-control(type='text', name='externalfile', placeholder='URL zu ext. GeoJSON-Datei')
+              input.btn.btn-default(type='submit', value='Auf Karte laden')
+            br
+            button.btn.btn-default(onclick='showLocation()') Meine Position anzeigen
+            br
+            br
+            button.btn.btn-default(onclick='exportDrawing()') Zeichnung herunterladen
+        div#search.hidden
+          form#searchform
+            input(id='searchform_input' type='search', placeholder="Search", autocomplete="off", onchange="search_items(this.value)", oninput="this.onchange();", onkeypress="this.onchange();", onpaste="this.onchange();")
+
+          #accordion.panel-group
+            .panel.panel-default
+              .panel-heading.blue
+                h4.panel-title Create new Object
+                  a.accordion-toggle(data-toggle='collapse', data-parent='#accordion', href='#createObjectCollapsible')
+              #createObjectCollapsible.panel-collapse.collapse
+                .panel-body
+                  form#createObjectForm
+                    p
+                      label(for='assoc_stage') Associated Stage:
+                      input#assoc_stage(name='assoc_stage' type='text', list='stagename', required='true')
+                    br
+                    p
+                      label(for='object_id') Object ID:
+                      input#object_id(name='object_id' type='text', required='true')
+                    br
+                    p
+                      label(for='object_name') Name:
+                      input#object_name(name='object_name' type='text', required='true')
+                    br
+                    p
+                      label(for='object_type') Type:
+                      input#object_type(name='object_type' type='text', required='true')
+                    br
+                    p
+                      label(for='object_price') Price:
+                      input#object_price(name='object_price' type='number', required='true')
+                    br
+                    p
+                      label(for='object_capacity') Capacity:
+                      input#object_capacity(name='object_capacity' type='number', required='true')
+                    br
+                    p
+                     input(type='submit', value='Add to Database')
+                  datalist#stagename
+            .panel.panel-default
+              .panel-heading.blue
+                h4.panel-title Create new Stage
+                  a.accordion-toggle(data-toggle='collapse', data-parent='#accordion', href='#createStageCollapsible')
+              #createStageCollapsible.panel-collapse.collapse
+                .panel-body
+                  form#createStageForm
+                      p
+                        label(for='stage_id') Stage ID:
+                        input#stage_id(name='stage_id' type='text', required='true', placeholder='Stage_1')
+                      br
+                      p
+                        label(for='stage_name') Stage Name:
+                        input#stage_name(name='stage_name' type='text', required='true', placeholder='Stage 1')
+                      br
+                      p
+                        label(for='stage_type') Type:
+                        input#stage_type(name='stage_type' type='text', required='true', placeholder='Time Trial')
+                      br
+                      p
+                        label(for='stage_startDate') Start Date:
+                        input#stage_startDate(name='stage_startDate' type='date', required='true', placeholder='21/08/1998')
+                      br
+                      p
+                        label(for='stage_endDate') End Date:
+                        input#stage_endDate(name='stage_endDate' type='datetime-local', required='true', placeholder='21/08/1998')
+                      br
+                      p
+                        label(for='stage_startlocation_name') Start Location Name:
+                        input#stage_startlocation_name(name='stage_startlocation_name' type='text', required='true', placeholder='Madrid')
+                      br
+                      p
+                        label(for='stage_startlocation_coords') Start Location Coordinates:
+                        input#stage_startlocation_coords(name='stage_startlocation_coords' type='text', required='true', placeholder='40.4410054,-3.8134415')
+                      br
+                      p
+                        label(for='stage_startlocation_image') Start Location Image:
+                        input#stage_startlocation_image(name='stage_startlocation_image' type='text', placeholder='TODO')
+                      br
+                      p
+                        label(for='stage_startlocation_website') Start Location Website:
+                        input#stage_startlocation_website(name='stage_startlocation_website' type='text', placeholder='TODO')
+                      br
+                      p
+                        label(for='stage_endlocation_name') End Location Name:
+                        input#stage_endlocation_name(name='stage_endlocation_name' type='text', required='true', placeholder='Madrid')
+                      br
+                      p
+                        label(for='stage_endlocation_coords') End Location Coordinates:
+                        input#stage_endlocation_coords(name='stage_endlocation_coords' type='text', required='true', placeholder='40.1234,-3.76482')
+                      br
+                      p
+                        label(for='stage_endlocation_image') End Location Image:
+                        input#stage_endlocation_image(name='stage_endlocation_image' type='text', placeholder='')
+                      br
+                      p
+                        label(for='stage_endlocation_website') End Location Website:
+                        input#stage_endlocation_website(name='stage_endlocation_website' type='text', placeholder='')
+                      br
+                      p
+                        label(for='stage_description') Description:
+                        input#stage_description(name='stage_description' type='text', placeholder='This is the first Time Trial.')
+                      br
+                      p
+                        label(for='stage_waypoints') Waypoints:
+                        input#stage_waypoints(name='stage_waypoints' type='text', placeholder='')
+                      br
+                      p
+                        label(for='stage_pictures') Pictures:
+                        input#stage_pictures(name='stage_pictures' type='text', placeholder='')
+                      br
+                      p
+                        input(type='submit', value='Add to Database')
+
+            #template.panel.panel-default.hidden
+              .panel-heading
+                h4.panel-title
+                  a.accordion-toggle(data-toggle='collapse', data-parent='#accordion', href='#dummy')
+              #dummy.panel-collapse.collapse.in
+                .panel-body
+
+        div#imprint.hidden
+          h1 Legal Disclosure
+          | Information in accordance with section 5 TMG
+          br
+          br
+          | Jan Speckamp
+          br
+          | 127.0.0.1
+          br
+          | eth0
+          br
+          h2 Contact
+          | ICQ: 123456789
+          br
+          | E-Mail:
+          a(href='mailto:noreply.muster@mail.de') max.muster@mail.de
+          br
+          | Website:
+          a(href='http://3g2upl4pq6kufc4m.onion/', target='_blank') http://3g2upl4pq6kufc4m.onion/
+          br
+          h2 Disclaimer
+          | Accountability for content
+          br
+          | The contents of our pages have been created with the utmost care. However, we cannot guarantee the contents' accuracy, completeness or topicality. According to statutory provisions, we are furthermore responsible for our own content on these web pages. In this context, please note that we are accordingly not obliged to monitor merely the transmitted or saved information of third parties, or investigate circumstances pointing to illegal activity. Our obligations to remove or block the use of information under generally applicable laws remain unaffected by this as per §§ 8 to 10 of the Telemedia Act (TMG).
+          br
+          br
+          | Accountability for links
+          br
+          | Responsibility for the content of external links (to web pages of third parties) lies solely with the operators of the linked pages. No violations were evident to us at the time of linking. Should any legal infringement become known to us, we will remove the respective link immediately.
+          br
+          br
+          | Copyright
+          br
+          |  Our web pages and their contents are subject to German copyright law. Unless expressly permitted by law (§ 44a et seq. of the copyright law), every form of utilizing, reproducing or processing works subject to copyright protection on our web pages requires the prior consent of the respective owner of the rights. Individual reproductions of a work are allowed only for private use, so must not serve either directly or indirectly for earnings. Unauthorized utilization of copyrighted works is punishable (§ 106 of the copyright law).
+          br
+          br
+          i Source:
+          a(href='https://www.twigg.de', target='_blank') twiggs translations
+          br
+          br
+

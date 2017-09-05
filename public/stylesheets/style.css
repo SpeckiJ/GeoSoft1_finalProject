@@ -1,0 +1,87 @@
+body {
+  padding: 25px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a, a:active, a:focus{
+  color: #00B7FF;
+  outline: none;
+  border: 0;
+}
+
+#search {
+  padding-top: 20px;
+}
+.panel-title a {
+  display: block;
+  padding: 10px 15px;
+  margin: -10px -15px;
+}
+
+.panel-heading:hover {
+  cursor: pointer;
+}
+
+/* Adapted from https://www.w3schools.com/howto/howto_css_animated_search.asp */
+input[type=search] {
+  width: 25%;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  background-color: white;
+  background-image: url('geocoder.png');
+  background-position: 10px 10px;
+  background-repeat: no-repeat;
+  padding: 12px 20px 12px 40px;
+  -webkit-transition: width 0.4s ease-in-out;
+  transition: width 0.4s ease-in-out;
+}
+input[type=search]:focus {
+  width: 80%;
+}
+
+.ui-resizable-handle {
+  background: linear-gradient(
+          to bottom,
+          white,
+          white 50%,
+          lightgray 50%,
+          lightgray
+  );
+  background-size: 100% 20px;
+}
+#map {
+  padding-top: 10px;
+  height: 70vh;
+}
+.floatright {
+  float: right;
+  max-height: 25%;
+}
+
+#searchform {
+  padding-bottom: 10px;
+}
+
+
+#createObjectForm, #createStageForm{
+  display: table;
+}
+
+#createObjectForm p, #createStageForm p{
+  display: table-row;
+}
+
+.secondcoloumn{
+  display: table-column!important;
+}
+
+#createObjectForm input, label, #createStageForm input, label{
+  padding-left: 10px;
+  display: table-cell;
+}
+
+.blue {
+  background-color:lightskyblue !important;
+}
