@@ -3,6 +3,7 @@
 var express = require('express');
 var router = new express.Router();
 var db = require('../lib/DBHandler.js');
+var validator = require('../lib/stageschema.js');
 
 
 /* GET Page. */
@@ -12,12 +13,9 @@ router.get('/', function(req, res, next) {
 
 /* GET Page with permalinked Data*/
 router.get('/:objectlist/', function(req, res, next) {
-    res.render('index', {loaded_object_list: req.params.objectlist});
+    console.log(req.params.objectlist);
+    res.render('index', {objects: req.params.objectlist});
 });
-
-router.route('/api/save/')
-    // SAVE Object to Database
-
 
 router.route('/api/:id')
     // GET Object from Database
@@ -51,12 +49,20 @@ router.route('/api/:id')
     })
     // PUT Object in Database
     .put(function (req, res) {
-        db.insert_item(req.body, function(err){
-            if (err)
-                res.status(500).end("Failed to write Objects to Database." + err);
-            else
-                res.status(200).end("Successfully wrote Objects to Database");
-        });
+        // Validate if JSON was valid stage
+        res.setHeader('Content-type', 'application/json');
+        if(!validator.validatejson(req.body).valid){
+            var validation = validator.validatejson(req.body);
+            console.log("Validation failed due to Errors:" + validation);
+            res.status(422).end("GeoJSON Validation failed with Error:" + validation);
+        } else {
+            db.insert_item(req.body, function (err) {
+                if (err)
+                    res.status(500).end("Failed to write Objects to Database." + err);
+                else
+                    res.status(200).end("Successfully wrote Objects to Database");
+            });
+        }
     });
 
 module.exports = router;

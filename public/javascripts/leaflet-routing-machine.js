@@ -2944,7 +2944,7 @@ if (typeof module === 'object' && module.exports) {
 			formatMessage: function(error) {
 				if (error.status < 0) {
 					return 'Calculating the route caused an error. Technical description follows: <code><pre>' +
-						error.message + '</pre></code';
+						error.message + '</pre></code>';
 				} else {
 					return 'The route could not be calculated. ' +
 						error.message;

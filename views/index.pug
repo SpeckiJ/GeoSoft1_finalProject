@@ -17,6 +17,8 @@ html
     script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
     script(src='https://unpkg.com/leaflet@1.0.3/dist/leaflet.js')
     script(src='/javascripts/leaflet-routing-machine.js')
+    script(src="https://use.fontawesome.com/31a5e4392a.js")
+    script(src='/javascripts/Control.Geocoder.js')
 
     script(src = '/javascripts/index.js')
     script(src = '/javascripts/map.js')
@@ -25,6 +27,8 @@ html
     link(rel='stylesheet', href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css')
     link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css', integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u', crossorigin='anonymous')
     link(rel='stylesheet', href='https://unpkg.com/leaflet@1.0.3/dist/leaflet.css')
+    link(rel='stylesheet', href='/stylesheets/Control.Geocoder.css')
+
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/leaflet-routing-machine.css')
 
@@ -34,7 +38,6 @@ html
   body
     .container-fluid
       .col-md-12
-        h1 La Vuelta a Espana - Roadmap
         ul.nav.nav-tabs
           li.active(role='presentation' id='li_start')
             a(href='#' onclick='toggleView("start")') Start
@@ -42,18 +45,20 @@ html
             a(href='#' onclick='toggleView("map")') Map
           li(role='presentation' id='li_search')
             a(href='#' onclick='toggleView("search")') Search
+          li(role='presentation' id='li_import')
+            a(href='#' onclick='toggleView("import")') Import
           li(role='presentation' id='li_imprint')
             a(href='#' onclick='toggleView("imprint")') Imprint
-        div#start
+        div#start.hidden
           h2 Willkommen
           p
            | Bla bla bla. Weil es die Aufgabenstellung verlangt, sehen Sie erst diese Startseite, anstatt ganz modern gleich die Karte serviert zu bekommen.
         div#menuitem_map.hidden
-          #content.col-md-8
+          #content.col-md-12
             // Leaflet map div
             #map
 
-          #menu.col-md-4
+          #menu.col-md-4.hidden
             h2 Tools
             // form, on submit event showExternalFile() is called and the default action (i.e. submitting the form) prevented
             form.form-inline(onsubmit='event.preventDefault(); showExternalFile();')
@@ -67,12 +72,11 @@ html
         div#search.hidden
           form#searchform
             input(id='searchform_input' type='search', placeholder="Search", autocomplete="off", onchange="search_items(this.value)", oninput="this.onchange();", onkeypress="this.onchange();", onpaste="this.onchange();")
-
           #accordion.panel-group
             .panel.panel-default
               .panel-heading.blue
-                h4.panel-title Create new Object
-                  a.accordion-toggle(data-toggle='collapse', data-parent='#accordion', href='#createObjectCollapsible')
+                h4.panel-title
+                  a.accordion-toggle(data-toggle='collapse', data-parent='#accordion', href='#createObjectCollapsible') Create new Object
               #createObjectCollapsible.panel-collapse.collapse
                 .panel-body
                   form#createObjectForm
@@ -101,15 +105,16 @@ html
                       input#object_capacity(name='object_capacity' type='number', required='true')
                     br
                     p
-                     input(type='submit', value='Add to Database')
+                     input(type='submit', value='Add to Database', onlick='alert("TEST")')
                   datalist#stagename
             .panel.panel-default
               .panel-heading.blue
-                h4.panel-title Create new Stage
-                  a.accordion-toggle(data-toggle='collapse', data-parent='#accordion', href='#createStageCollapsible')
+                h4.panel-title
+                  a.accordion-toggle(data-toggle='collapse', data-parent='#accordion', href='#createStageCollapsible') Create new Stage
               #createStageCollapsible.panel-collapse.collapse
                 .panel-body
-                  form#createStageForm
+                  form#createStageForm.tabledisplay
+                    .col-md-4.tabledisplay
                       p
                         label(for='stage_id') Stage ID:
                         input#stage_id(name='stage_id' type='text', required='true', placeholder='Stage_1')
@@ -131,38 +136,6 @@ html
                         input#stage_endDate(name='stage_endDate' type='datetime-local', required='true', placeholder='21/08/1998')
                       br
                       p
-                        label(for='stage_startlocation_name') Start Location Name:
-                        input#stage_startlocation_name(name='stage_startlocation_name' type='text', required='true', placeholder='Madrid')
-                      br
-                      p
-                        label(for='stage_startlocation_coords') Start Location Coordinates:
-                        input#stage_startlocation_coords(name='stage_startlocation_coords' type='text', required='true', placeholder='40.4410054,-3.8134415')
-                      br
-                      p
-                        label(for='stage_startlocation_image') Start Location Image:
-                        input#stage_startlocation_image(name='stage_startlocation_image' type='text', placeholder='TODO')
-                      br
-                      p
-                        label(for='stage_startlocation_website') Start Location Website:
-                        input#stage_startlocation_website(name='stage_startlocation_website' type='text', placeholder='TODO')
-                      br
-                      p
-                        label(for='stage_endlocation_name') End Location Name:
-                        input#stage_endlocation_name(name='stage_endlocation_name' type='text', required='true', placeholder='Madrid')
-                      br
-                      p
-                        label(for='stage_endlocation_coords') End Location Coordinates:
-                        input#stage_endlocation_coords(name='stage_endlocation_coords' type='text', required='true', placeholder='40.1234,-3.76482')
-                      br
-                      p
-                        label(for='stage_endlocation_image') End Location Image:
-                        input#stage_endlocation_image(name='stage_endlocation_image' type='text', placeholder='')
-                      br
-                      p
-                        label(for='stage_endlocation_website') End Location Website:
-                        input#stage_endlocation_website(name='stage_endlocation_website' type='text', placeholder='')
-                      br
-                      p
                         label(for='stage_description') Description:
                         input#stage_description(name='stage_description' type='text', placeholder='This is the first Time Trial.')
                       br
@@ -176,14 +149,80 @@ html
                       br
                       p
                         input(type='submit', value='Add to Database')
+                    .col-md-4
+                      label
+                        h3 Information about Start:
+                      br
+                      br
+                      .tabledisplay
+                        p
+                          label(for='stage_startlocation_name') Start Location Name:
+                          input#stage_startlocation_name(name='stage_startlocation_name' type='text', required='true', placeholder='Madrid')
+                        br
+                        p
+                          label(for='stage_startlocation_coords') Start Location Coordinates:
+                          input#stage_startlocation_coords(name='stage_startlocation_coords' type='text', required='true', placeholder='40.4410054,-3.8134415')
+                        br
+                        p
+                          label(for='stage_startlocation_image') Start Location Image:
+                          input#stage_startlocation_image(name='stage_startlocation_image' type='text', placeholder='')
+                        br
+                        p
+                          label(for='stage_startlocation_website') Start Location Website:
+                          input#stage_startlocation_website(name='stage_startlocation_website' type='text', placeholder='')
+                        br
+                    .col-md-4
+                      label
+                        h3 Information about Finish:
+                      br
+                      br
+                      .tabledisplay
+                        p
+                          label(for='stage_endlocation_name') End Location Name:
+                          input#stage_endlocation_name(name='stage_endlocation_name' type='text', required='true', placeholder='Madrid')
+                        br
+                        p
+                          label(for='stage_endlocation_coords') End Location Coordinates:
+                          input#stage_endlocation_coords(name='stage_endlocation_coords' type='text', required='true', placeholder='40.1234,-3.76482')
+                        br
+                        p
+                          label(for='stage_endlocation_image') End Location Image:
+                          input#stage_endlocation_image(name='stage_endlocation_image' type='text', placeholder='')
+                        br
+                        p
+                          label(for='stage_endlocation_website') End Location Website:
+                          input#stage_endlocation_website(name='stage_endlocation_website' type='text', placeholder='')
+                        br
 
-            #template.panel.panel-default.hidden
+            #templatestage.panel.panel-default.hidden
               .panel-heading
                 h4.panel-title
+                  .btn-group.rightmargin
+                    .btn.btn-danger(role="button" onclick='delete_stage(this);' data-toggle='collapse', data-parent='#accordion', href='#templatestage')
+                      i.fa.fa-trash(aria-hidden="true")
+                    .btn.btn-info(role="button" onclick='edit_stage(this);')
+                      i.fa.fa-pencil(aria-hidden="true")
                   a.accordion-toggle(data-toggle='collapse', data-parent='#accordion', href='#dummy')
               #dummy.panel-collapse.collapse.in
                 .panel-body
-
+            #templateobject.panel.panel-default.hidden
+              .panel-heading
+                h4.panel-title
+                  .btn-group.rightmargin
+                    .btn.btn-danger(role="button" onclick='delete_object(this);')
+                      i.fa.fa-trash(aria-hidden="true")
+                    .btn.btn-info(role="button" onclick='edit_object(this);')
+                      i.fa.fa-pencil(aria-hidden="true")
+                  a.accordion-toggle(data-toggle='collapse', data-parent='#accordion', href='#dummy')
+              #dummy.panel-collapse.collapse.in
+                .panel-body
+        div#import.hidden
+          form.form-inline(onsubmit='event.preventDefault(); loadExternalFile();')
+            input#loadexternalGeoJSON.form-control(type='text', name='externalfile', placeholder='URL zu ext. GeoJSON-Datei')
+            input.btn.btn-default(type='submit', value='Import')
+          form.form-inline(onsubmit='event.preventDefault(); loadExternalGEOJSONTextField();')
+            input#loadGeoJSONTextField.form-control(type='textarea', name='externalfile', placeholder='GeoJSON')
+            input.btn.btn-default(type='submit', value='Import')
         div#imprint.hidden
           h1 Legal Disclosure
           | Information in accordance with section 5 TMG

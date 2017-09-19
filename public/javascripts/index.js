@@ -12,14 +12,63 @@ function create_datalist() {
     })
 }
 
+function edit_stage(button){
+    var panel = $("#panel_" + button.id.substr(17)).find(".panel-collapse");
+    var template = $("#createStageForm").clone();
+    panel.addClass("in");
+    panel = panel.find(".panel-body");
+    panel.empty();
+    // Add Form
+    panel.append(template);
+
+    // Get Item from Collection
+    var object;
+    var collection = loaded_objects_visible.concat(loaded_objects_invisible);
+    for (var i = 0, n = collection.length; i<n;i++) {
+        if(collection[i].id === button.id.substr(17)) {
+            object = collection[i];
+        }
+    }
+    // Fill Form with values
+    panel.find("#stage_id")[0].value = object.id;
+    panel.find("#stage_name")[0].value = object.values.name;
+    panel.find("#stage_type")[0].value = object.values.type;
+    panel.find("#stage_startDate")[0].value = object.values.startDate;
+    panel.find("#stage_endDate")[0].value = object.values.endDate;
+    panel.find("#stage_startlocation_coords")[0].value = object.values.startLocation.coords.x + "," + object.values.startLocation.coords.y;
+    panel.find("#stage_startlocation_name")[0].value = object.values.startLocation.name;
+    panel.find("#stage_startlocation_image")[0].value = object.values.startLocation.image;
+    panel.find("#stage_startlocation_website")[0].value = object.values.startLocation.website;
+    panel.find("#stage_endlocation_coords")[0].value = object.values.endLocation.coords.x + "," + object.values.endLocation.coords.y;
+    panel.find("#stage_endlocation_name")[0].value = object.values.endLocation.name;
+    panel.find("#stage_endlocation_image")[0].value = object.values.endLocation.image;
+    panel.find("#stage_endlocation_website")[0].value = object.values.endLocation.website;
+    panel.find("#stage_waypoints")[0].value = object.values.waypoints;
+    panel.find("#stage_description")[0].value = object.values.description;
+    panel.find("#stage_pictures")[0].value = object.values.pictures;
+
+    // Overwrite Submit Handler
+    template.submit(function(e) {
+        return submit_StageForm(e, this, 'POST');
+
+    });
+    panel.addClass('in');
+}
+function delete_stage(button) {
+    var panel = $("#panel_" + button.id.substr(17)).find(".panel-collapse");
+
+//TODO: Implement=
+}
+
 
 /**
  * Gets Objects from API
  */
 function get_objects_by_id(idlist) {
-    idlist.forEach(function (t) {
+    var ajaxcalls = [];
+    for (var i = 0 , n = idlist.length; i<n; i++) {
         // submit via ajax
-        $.ajax({
+        ajaxcalls.push($.ajax({
             // catch custom response code.
             statusCode: {
                 500: function() {
@@ -31,18 +80,20 @@ function get_objects_by_id(idlist) {
             type: 'GET',
             contentType: "application/json",
             // Dynamically create Request URL by appending requested name to /api prefix
-            url:  '/api/'+t.id,
+            url:  '/api/'+idlist[i],
             error: function(xhr, status, err) {
-                //TODO
+                //TODO: Proper Error logging
                 console.log(err);
             },
             success: function(res) {
                 loaded_objects_invisible.push(res[0]);
-            }
-        }).then(function () {
                 search_items("");
-        });
-    });
+            }
+        }));
+    };
+    $.when.apply($, ajaxcalls).then(
+        search_items(""), initMap()
+    );
 }
 
 
@@ -50,8 +101,9 @@ function get_objects_by_id(idlist) {
  * Gets Content from Wikipedia
  */
 function get_wikipedia_intro(idlist) {
-    idlist.forEach(function (t) {
+    for (var i = 0 , n = idlist.length; i<n; i++) {
         // submit via ajax
+        var t = idlist[i];
         $.ajax({
             // catch custom response code.
             data: '',
@@ -92,7 +144,7 @@ function get_wikipedia_intro(idlist) {
         }).then(function () {
             document.getElementById('endlocation_' + t.id).innerHTML = "Wikipedia <a href='https://en.wikipedia.org/w/api.php?format=json&origin=*&action=query&prop=extracts&redirects=1&exintro=&explaintext=&titles='" + t.values.endLocation.name+ "'>(source)</a>: <br>" + endlocation_wikipedia;
         });
-    });
+    };
 }
 
 var demoitems =
@@ -104,6 +156,7 @@ var demoitems =
                     "type": "Etappe",
                     "startDate":"21/09/1008",
                     "endDate":"21/12/1008",
+                    "route": {},
                     "startLocation":
                     {
                         "coords":{"x": 41, "y": 0},
@@ -118,11 +171,9 @@ var demoitems =
                         "image":"asdfasdfasdf",
                         "website": "",
                     },
-                    "waypoints":
-                        [
-                        ],
                     "description": "Beschreibung der Etappe 1",
                     "pictures": [
+                        "http://www.reise-nach-italien.de/pisa01.jpg",
                         "http://www.reise-nach-italien.de/pisa01.jpg",
                         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwBTNi5EWtu3VUspEzbPPSH4meDSRY_gfGM0hjBsuX8G2V5AjfU6f5_Q"
                     ],
@@ -130,6 +181,10 @@ var demoitems =
                         {
                             "id": "parking1",
                             "type": "Parking",
+                            "coords": {
+                                "x": 41,
+                                "y": 1,
+                            },
                             "name": "Parkplatz1",
                             "price": 555,
                             "capacity": 2323,
@@ -137,19 +192,91 @@ var demoitems =
                         {
                             "id": "parking2",
                             "type": "Parking",
+                            "coords": {
+                                "x": 42,
+                                "y": 3,
+                            },
                             "name": "Parkplatz2",
                             "price": 222,
                             "capacity": 1111,
                         },
-
                     ],
                 }
         }
     ];
 
+var newobject;
+
+function submit_StageForm(e, that, method){
+    e.preventDefault();
+    // Create Object
+    newobject = {};
+    newobject.id = that.elements["stage_id"].value;
+    newobject.values = {};
+    newobject.values.name = that.elements["stage_name"].value;
+    newobject.values.type =that.elements["stage_type"].value;
+    newobject.values.startDate = that.elements["stage_startDate"].value;
+    newobject.values.endDate = that.elements["stage_endDate"].value;
+    newobject.values.startLocation = {};
+    newobject.values.startLocation.name = that.elements["stage_startlocation_name"].value;
+    newobject.values.startLocation.coords = {};
+    newobject.values.startLocation.coords.x = parseFloat(that.elements["stage_startlocation_coords"].value.split(',')[0]);
+    newobject.values.startLocation.coords.y = parseFloat(that.elements["stage_startlocation_coords"].value.split(',')[1]);
+    newobject.values.startLocation.image = that.elements["stage_startlocation_image"].value;
+    newobject.values.startLocation.website = that.elements["stage_startlocation_website"].value;
+    newobject.values.endLocation = {};
+    newobject.values.endLocation.name = that.elements["stage_endlocation_name"].value;
+    newobject.values.endLocation.coords = {};
+    newobject.values.endLocation.coords.x = parseFloat(that.elements["stage_endlocation_coords"].value.split(',')[0]);
+    newobject.values.endLocation.coords.y = parseFloat(that.elements["stage_endlocation_coords"].value.split(',')[1]);
+    newobject.values.endLocation.image = that.elements["stage_endlocation_image"].value;
+    newobject.values.endLocation.website = that.elements["stage_endlocation_website"].value;
+    newobject.values.description = that.elements["stage_description"].value;
+
+    var wrapper = {}, wrapper2 = {};
+    // Generate Route if this is first creation
+    if (method === 'PUT') {
+        wrapper.latLng = new L.latLng(newobject.values.startLocation.coords.x, newobject.values.startLocation.coords.y);
+        wrapper2.latLng = new L.latLng(newobject.values.endLocation.coords.x, newobject.values.endLocation.coords.y);
+    }
+
+    // Manage multiple Pictures ?
+    newobject.values.pictures = that.elements["stage_pictures"].value;
+    if (method === 'PUT') {
+        newobject.values.parking = [];
+    }
+
+    // Throw into Router to get initial Route
+    console.log(newobject.values.route === undefined);
+    if (newobject.values.route === undefined) {
+        var router = L.routing.osrmv1();
+        router.route([wrapper, wrapper2], function (err, routes) {
+            if (err) {
+                //TODO: handle error
+            } else {
+                console.log(routes[0]);
+                newobject.values.route = {};
+                newobject.values.route.coordinates = routes[0].coordinates;
+                newobject.values.route.waypoints = routes[0].waypoints;
+                save_object_in_db(newobject, method, '/api/' + newobject.id);
+                console.log("im hereeeeererr");
+            }
+        });
+    } else {
+        save_object_in_db(newobject, method, '/api/' + newobject.id)
+    }
+
+    // Add Object to Element
+    loaded_objects_visible.push(newobject);
+    // Save in Database
+    //save_object_in_db(newobject, method , '/api/' + newobject.id);
+    return false;
+}
+
 
 $(document).ready(function() {
-    get_objects_by_id(demoitems);
+    // save_object_in_db(demoitems[0], 'PUT', '/api/' + demoitems[0].id);
+    get_objects_by_id(loaded_object_id);
     // Overwrite default form Handlers.
     // overwrite submit handler for form used to save to Database
     $('#createObjectForm').submit(function(e) {
@@ -180,57 +307,9 @@ $(document).ready(function() {
         return false;
     });
     $('#createStageForm').submit(function(e) {
-        e.preventDefault();
-        var that = this;
-
-        //TODO: Assert correctness of User Input
-
-        // Create Object
-        var newobject =
-        {
-            "id": that.elements["stage_id"].value,
-            "values": {
-            "name": that.elements["stage_name"].value,
-                "type": that.elements["stage_type"].value,
-                "startDate":that.elements["stage_startDate"].value,
-                "endDate":that.elements["stage_endDate"].value,
-                "startLocation":
-            {
-                "coords": {
-                    "x":that.elements["stage_startlocation_coords"].value.split(',')[0],
-                    "y":that.elements["stage_startlocation_coords"].value.split(',')[1]
-                },
-                "name":that.elements["stage_startlocation_name"].value,
-                "image":that.elements["stage_startlocation_image"].value,
-                "website":that.elements["stage_startlocation_website"].value,
-            },
-            "endLocation":
-            {
-                "coords": {
-                    "x":that.elements["stage_endlocation_coords"].value.split(',')[0],
-                    "y":that.elements["stage_endlocation_coords"].value.split(',')[1]
-                },
-                "name":that.elements["stage_endlocation_name"].value,
-                "image":that.elements["stage_endlocation_image"].value,
-                "website":that.elements["stage_endlocation_website"].value,
-            },
-            "waypoints":
-            [
-                that.elements["stage_waypoints"].value
-            ],
-            "description": that.elements["stage_description"].value,
-            "pictures": [
-                that.elements["stage_pictures"].value
-            ],
-            }
-        };
-
-        // Add Object to Element
-        loaded_objects_visible.push(newobject)
-        // Save in Database
-        save_object_in_db(newobject, 'PUT', '/api/' + newobject.id);
-        return false;
+        return submit_StageForm(e, this, 'PUT');
     });
+    search_items("");
 });
 
 /**
@@ -241,13 +320,13 @@ function save_object_in_db(object, method, url) {
         data: JSON.stringify(object),
         type: method,
         contentType: 'application/json',
-        dataType : "json",
+        dataType : "text",
         url:  url,
         error: function(xhr, status, err) {
-            //TODO
+            alert("Unable to store Object to Database. Error was: " + err + xhr.responseText)
         },
         success: function(res) {
-            console.log("Parsed object" + object +"to Database 1");
+            console.log("Parsed object" + object +"to Database.");
         }
     });
 }
@@ -306,29 +385,32 @@ function search_items(searchterm) {
  * Add Items to Search Results
  */
 function add_to_accordion(items){
-    items.forEach(
-        function (item) {
-            // inspired by http://jsfiddle.net/onigetoc/6dunsd01/
-            var $itemPanel = $("#template").clone();
-            $itemPanel.removeClass("hidden").attr("id", "panel_" + item.id);
-            $itemPanel.find(".accordion-toggle").attr("href",  "#panel_collapse" + item.id)
-                .text(item.values.type + " | " + item.values.name);
-            $itemPanel.find(".panel-collapse").attr("id", "panel_collapse" + item.id).addClass("collapse").removeClass("in");
-            createStagePanel($itemPanel.find(".panel-body"), item);
-            $("#accordion").append($itemPanel);
+    for (var l = 0, m = items.length;l<m;l++) {
+        var item = items[l];
+        // inspired by http://jsfiddle.net/onigetoc/6dunsd01/
+        var $itemPanel = $("#templatestage").clone();
+        $itemPanel.removeClass("hidden").attr("id", "panel_" + item.id);
+        $itemPanel.find(".accordion-toggle").attr("href", "#panel_collapse" + item.id)
+            .append(item.values.type + " | " + item.values.name);
+        $itemPanel.find(".btn-info").attr("id", "panel_editbutton_" + item.id);
+        $itemPanel.find(".btn-danger").attr("id", "panel_deletebutton_" + item.id);
+        $itemPanel.find(".panel-collapse").attr("id", "panel_collapse" + item.id).addClass("collapse").removeClass("in");
+        createStagePanel($itemPanel.find(".panel-body"), item);
+        $("#accordion").append($itemPanel);
 
-            // Add associated Objects
-            for (var i = 0, n = item.values.parking.length;i<n;i++) {
-                var $itemPanel = $("#template").clone();
-                $itemPanel.removeClass("hidden").attr("id", "panel_" + item.values.parking[i].id);
-                $itemPanel.find(".accordion-toggle").attr("href",  "#panel_collapse" + item.values.parking[i].id)
-                    .text(item.values.parking[i].type +" - "+ item.values.name +" | " + item.values.parking[i].name);
-                $itemPanel.find(".panel-collapse").attr("id", "panel_collapse" + item.values.parking[i].id).addClass("collapse").removeClass("in");
-                createObjectPanel($itemPanel.find(".panel-body"), item.values.parking[i]);
-                $("#accordion").append($itemPanel);
-            }
+        // Add associated Objects
+        for (var i = 0, n = item.values.parking.length; i < n; i++) {
+            var $itemPanel = $("#templateobject").clone();
+            $itemPanel.removeClass("hidden").attr("id", "panel_" + item.values.parking[i].id);
+            $itemPanel.find(".accordion-toggle").attr("href", "#panel_collapse" + item.values.parking[i].id)
+                .text(item.values.parking[i].type + " - " + item.values.name + " | " + item.values.parking[i].name);
+            $itemPanel.find(".btn-info").attr("id", "panel_editbutton_" + item.id);
+            $itemPanel.find(".btn-danger").attr("id", "panel_deletebutton_" + item.id);
+            $itemPanel.find(".panel-collapse").attr("id", "panel_collapse" + item.values.parking[i].id).addClass("collapse").removeClass("in");
+            createObjectPanel($itemPanel.find(".panel-body"), item.values.parking[i]);
+            $("#accordion").append($itemPanel);
         }
-    );
+    }
     get_wikipedia_intro(items);
 }
 
@@ -338,35 +420,48 @@ function add_to_accordion(items){
  * @param item Stage to visualize
  */
 function createStagePanel(panel, item){
-    panel.append("<h5><strong> Date: </strong>"
+    var contentDiv = document.createElement('div');
+    contentDiv.className = 'col-md-7';
+    var pictureDiv = document.createElement('div');
+    pictureDiv.className = 'col-md-5 scroll pill-right';
+
+    // Correction for malformed Data (cause we use mongo and not relational DB):
+    if (item.values.description === undefined){
+        item.values.description = "";
+    }
+    if (item.values.pictures === undefined){
+        item.values.pictures = [];
+    }
+
+    contentDiv.innerHTML  = "<h5><strong> Date: </strong>"
         + item.values.startDate
         + " - "
         + item.values.endDate
-        + "</h5><br>"
-    );
-    for(var x = 0, n = item.values.pictures.length; x < n; x++){
-        panel.append("<img class='floatright' src="+ item.values.pictures[x] +" alt=" + item.values.name + ">")
-    }
-    panel.append("<h5><strong> Start: </strong>"
+        + "</h5><br><h5><strong> Start: </strong>"
         + item.values.startLocation.name
         + " (Coordinates: "
         + item.values.startLocation.coords.x
         + ","
         + item.values.startLocation.coords.y
-        + ") </h5><div class='lightgray' id='startlocation" + "_" + item.id+ "'></div><br>"
-    );
-    panel.append("<h5><strong> Finish: </strong>"
+        + ") </h5><div class='lightgray' id='startlocation_" + item.id+ "'></div><br>"
+        + "<h5><strong> Finish: </strong>"
         + item.values.endLocation.name
         + " (Coordinates: "
         + item.values.endLocation.coords.x
         + ","
         + item.values.endLocation.coords.y
-        + ")</h5><div class='lightgray' id='endlocation" + "_" + item.id+ "'></div><br>"
-    );
-    panel.append("<h5><strong> Description: </strong></h5>"
+        + ")</h5><div class='lightgray' id='endlocation_" + item.id+ "'></div><br>"
+        + "<h5><strong> Description: </strong></h5>"
         + item.values.description
-        + "<br>"
-    );
+        + "<br>";
+
+    for(var x = 0, n = item.values.pictures.length; x < n; x++){
+        var picture = document.createElement('div');
+        picture.className = 'row';
+        picture.innerHTML += "<img class='img-fluid' src="+ item.values.pictures[x] +" alt=" + item.values.name + ">";
+        pictureDiv.appendChild(picture);
+    }
+    panel.append(contentDiv,pictureDiv);
 }
 
 /**
@@ -389,6 +484,17 @@ function createObjectPanel(panel, item){
     );
 }
 
+function loadExternalGEOJSONTextField(){
+    var json = $('#loadGeoJSONTextField').val();
+    save_object_in_db(json, 'PUT', '/api/' + json.id);
+}
+
+function loadExternalFile(){
+    $.get(document.getElementById('externalfile').value, function(response) {
+        save_object_in_db(response, 'PUT', '/api/' + response.id);
+    });
+}
+
 /**
  * Pane Switcher
  */
@@ -398,40 +504,62 @@ function toggleView(mode) {
             $('#start').removeClass('hidden');
             $('#menuitem_map').addClass('hidden');
             $('#search').addClass('hidden');
+            $('#import').addClass('hidden');
             $('#imprint').addClass('hidden');
             $('#li_start').addClass('active');
             $('#li_map').removeClass('active');
             $('#li_search').removeClass('active');
+            $('#li_import').removeClass('active');
             $('#li_imprint').removeClass('active');
             break;
         case 'map':
             $('#start').addClass('hidden');
             $('#menuitem_map').removeClass('hidden');
             $('#search').addClass('hidden');
+            $('#import').addClass('hidden');
             $('#imprint').addClass('hidden');
             $('#li_start').removeClass('active');
             $('#li_map').addClass('active');
             $('#li_search').removeClass('active');
+            $('#li_import').removeClass('active');
             $('#li_imprint').removeClass('active');
+            map.remove();
+            initMap();
             break;
         case 'search':
             $('#start').addClass('hidden');
             $('#menuitem_map').addClass('hidden');
             $('#search').removeClass('hidden');
+            $('#import').addClass('hidden');
             $('#imprint').addClass('hidden');
             $('#li_start').removeClass('active');
             $('#li_map').removeClass('active');
             $('#li_search').addClass('active');
+            $('#li_import').removeClass('active');
+            $('#li_imprint').removeClass('active');
+            break;
+        case 'import':
+            $('#start').addClass('hidden');
+            $('#menuitem_map').addClass('hidden');
+            $('#search').addClass('hidden');
+            $('#import').removeClass('hidden');
+            $('#imprint').addClass('hidden');
+            $('#li_start').removeClass('active');
+            $('#li_map').removeClass('active');
+            $('#li_import').addClass('active');
+            $('#li_search').removeClass('active');
             $('#li_imprint').removeClass('active');
             break;
         case 'imprint':
             $('#start').addClass('hidden');
             $('#menuitem_map').addClass('hidden');
             $('#search').addClass('hidden');
+            $('#import').addClass('hidden');
             $('#imprint').removeClass('hidden');
             $('#li_start').removeClass('active');
             $('#li_map').removeClass('active');
             $('#li_search').removeClass('active');
+            $('#li_import').removeClass('active');
             $('#li_imprint').addClass('active');
             break;
         default:

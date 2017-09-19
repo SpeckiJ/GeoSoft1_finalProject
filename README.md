@@ -32,9 +32,9 @@ eingefügt werden.
     - Einrichten von Permalinks zu allen Objekten 
     - Strecken bearbeiten ggf wieder löschen 
 
-- Zu
+- ~~Zu
  jedem Veranstaltungsort soll automatisch der erste Absatz des 
-dazugehörigen Wikipedia-Artikels eingebunden werden (wenn vorhanden). 
+dazugehörigen Wikipedia-Artikels eingebunden werden (wenn vorhanden).~~
 - Suche  
     - ~~nach Etappen (nach Start, Ziel und Name)~~
     - ~~nach Terminen~~

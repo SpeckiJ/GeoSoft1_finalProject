@@ -12,14 +12,13 @@ a, a:active, a:focus{
 #search {
   padding-top: 20px;
 }
-.panel-title a {
-  display: block;
-  padding: 10px 15px;
-  margin: -10px -15px;
-}
 
 .panel-heading:hover {
   cursor: pointer;
+}
+
+.rightmargin {
+  margin-right: 20px;
 }
 
 /* Adapted from https://www.w3schools.com/howto/howto_css_animated_search.asp */
@@ -52,12 +51,12 @@ input[type=search]:focus {
   background-size: 100% 20px;
 }
 #map {
-  padding-top: 10px;
-  height: 70vh;
+  padding-top: 20px;
+  height: 80vh;
 }
-.floatright {
-  float: right;
-  max-height: 25%;
+.scroll {
+  overflow: scroll;
+  margin: auto;
 }
 
 #searchform {
@@ -65,19 +64,15 @@ input[type=search]:focus {
 }
 
 
-#createObjectForm, #createStageForm{
+.tabledisplay {
   display: table;
 }
 
-#createObjectForm p, #createStageForm p{
+.tabledisplay p {
   display: table-row;
 }
 
-.secondcoloumn{
-  display: table-column!important;
-}
-
-#createObjectForm input, label, #createStageForm input, label{
+.tabledisplay input, label{
   padding-left: 10px;
   display: table-cell;
 }
@@ -85,3 +80,4 @@ input[type=search]:focus {
 .blue {
   background-color:lightskyblue !important;
 }
+
