@@ -8,13 +8,20 @@ var validator = require('../lib/stageschema.js');
 
 /* GET Page. */
 router.get('/', function(req, res, next) {
-    res.render('index', {objects: ""});
+    db.get_all_item_ids(
+        function(idlist){
+            var idlist_refined  ="";
+            for (var i = 0; i < idlist.length; i++) {
+                idlist_refined += idlist[i].id+ ",";
+            }
+            idlist_refined = idlist_refined.substr(0, idlist_refined.length-1);
+            res.render('index', {objects: idlist_refined});
+        }
+    );
 });
 
-/* GET Page with permalinked Data*/
-router.get('/:objectlist/', function(req, res, next) {
-    console.log(req.params.objectlist);
-    res.render('index', {objects: req.params.objectlist});
+router.get('/api/', function (req, res, next) {
+    res.status(200).end("");
 });
 
 router.route('/api/:id')
@@ -39,13 +46,19 @@ router.route('/api/:id')
     })
     // POST Object in Database (Change Object)
     .post(function (req, res) {
-        console.log(req.body);
-        db.change_item(req.body, function (err) {
-            if (err)
-                res.status(500).end("Failed to change Object in Database." + err);
-            else
-                res.status(200).end("Successfully changed Object in Database");
-        })
+        res.setHeader('Content-type', 'application/json');
+        if(!validator.validatejson(req.body).valid) {
+            var validation = validator.validatejson(req.body);
+            console.log("Validation failed due to Errors:" + validation);
+            res.status(422).end("GeoJSON Validation failed with Error:" + validation);
+        } else {
+            db.change_item(req.body, function (err) {
+                if (err)
+                    res.status(500).end("Failed to change Object in Database." + err);
+                else
+                    res.status(200).end("Successfully changed Object in Database");
+            });
+        }
     })
     // PUT Object in Database
     .put(function (req, res) {
