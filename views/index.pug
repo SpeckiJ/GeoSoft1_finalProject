@@ -21,7 +21,6 @@ html
     script(src='https://unpkg.com/leaflet@1.0.3/dist/leaflet.js')
     script(src='/javascripts/leaflet-routing-machine.js')
     script(src="https://use.fontawesome.com/31a5e4392a.js")
-    script(src='/javascripts/Control.Geocoder.js')
     script(src='/javascripts/leaflet-sidebar.min.js')
     script(src='/javascripts/turfnearest.min.js')
 
@@ -33,7 +32,6 @@ html
     link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css', integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u', crossorigin='anonymous')
     link(rel='stylesheet', href='https://unpkg.com/leaflet@1.0.3/dist/leaflet.css')
     link(rel='stylesheet', href='/stylesheets/leaflet-sidebar.min.css')
-    link(rel='stylesheet', href='/stylesheets/Control.Geocoder.css')
 
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/stylesheets/leaflet-routing-machine.css')
@@ -165,7 +163,7 @@ html
               input.btn.btn-default(type='submit', value='Import')
             br
             form.form-inline(onsubmit='event.preventDefault(); loadExternalGEOJSONTextField();')
-              input#loadGeoJSONTextField.form-control(type='textarea', name='externalfile', placeholder='GeoJSON')
+              input#loadGeoJSONTextField.form-control(type='textarea', rows=10, name='externalfile', placeholder='GeoJSON')
               input.btn.btn-default(type='submit', value='Import')
           #imprint.sidebar-pane
               h1 Legal Disclosure

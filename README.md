@@ -18,18 +18,18 @@
     - textfeld-Import von GeoJSON Objekten
     - ~~Fehlerüberprüfung~~
 
-- Von
+- ~~Von
  jedem Zuschauerplatz, Start und Ziel soll auf Knopfdruck jeweils 
 automatisch eine Navigation zum nächstgelegenen Parkplatz erstellt und 
-eingefügt werden.
+eingefügt werden.~~
     - ~~Der Navigations-Pfad soll automatisch entfernt werden, wenn der User ein anderes Objekt oder Event “anwählt”~~
-    - Minimalanforderung: Auto-Navigation 
+    - ~~Minimalanforderung: Auto-Navigation~~
     - multi-modaler Verkehr (z.B. Bus, Fahrrad, zu Fuß) 
 
-- Speichern von Objekten und Etappen in eigener MongoDB (ggf. mit maximaler Auflösung - node.js plugin) 
+- ~~Speichern von Objekten und Etappen in eigener MongoDB (ggf. mit maximaler Auflösung - node.js plugin)~~
     - ~~Laden soll wieder möglich sein~~
     - ~~Einrichten von Permalinks zu allen Objekten~~
-    - Strecken bearbeiten ggf wieder löschen 
+    - ~~Strecken bearbeiten ggf wieder löschen~~
 
 - ~~Zu
  jedem Veranstaltungsort soll automatisch der erste Absatz des 
@@ -43,7 +43,7 @@ dazugehörigen Wikipedia-Artikels eingebunden werden (wenn vorhanden).~~
 - Sinnvolles Logging von Funktionen 
 - ~~Referenzieren eines jeden Objektes möglich sein (Permalink)~~
 - ~~Webseite soll eine Startseite und ein Impressum haben, für die geforderten Funktionen dürfen mehr als eine Seite erstellt werden~~
-- Responsive WebDesign 
+- Responsive WebDesign
     - Karte soll auch auf dem Smartphone gut bedienbar sein 
 
 - Mindestens 5 Sinnvolle TestUnits mit Mocha.js 

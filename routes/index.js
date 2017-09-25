@@ -1,3 +1,7 @@
+/**
+ * Geosoftware I, SoSe 2017, final
+ * @author Jan Speckamp (428367)
+ */
 'use strict';
 
 var express = require('express');
@@ -46,6 +50,7 @@ router.route('/api/:id')
     })
     // POST Object in Database (Change Object)
     .post(function (req, res) {
+        console.log(req.body);
         res.setHeader('Content-type', 'application/json');
         if(!validator.validatejson(req.body).valid) {
             var validation = validator.validatejson(req.body);
@@ -62,6 +67,7 @@ router.route('/api/:id')
     })
     // PUT Object in Database
     .put(function (req, res) {
+        console.log(req.body);
         // Validate if JSON was valid stage
         res.setHeader('Content-type', 'application/json');
         if(!validator.validatejson(req.body).valid){

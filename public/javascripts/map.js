@@ -60,7 +60,7 @@ function initMap() {
     // add standard OSM tiles as basemap
     layerControl = L.control.layers().addBaseLayer(L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map), 'OpenStreetMap (Tiles)').addTo(map);
+    }).addTo(map), 'OpenStreetMap (Tiles)').addTo(map).expand();
 
     // Setup Routing Plugin
     routeControl = L.Routing.control({
@@ -89,7 +89,8 @@ function initMap() {
         contextmenu_latlng = e.latlng;
         // Show different Options depending on circumstances
         if (route_in_editing !== undefined) {
-            htmlcontent += "<button onclick='addObjectPopup(this);'>Add Object</button><br><br>";
+            htmlcontent += "<button onclick='addParkingStandsPopup(this);'>Add Parking/Stands</button><br><br>";
+            htmlcontent += "<button onclick='addMiscellaneousPopup(this);'>Add Miscellaneous</button><br><br>";
         }
         if ($('#createStageCollapsible').hasClass('in') || route_in_editing !== undefined) {
             htmlcontent += "<button onclick='setRouteStartpoint(&quot;" + e.latlng + "&quot;);'>Set Startpoint</button><br><br>";
@@ -121,7 +122,7 @@ function initMap() {
             route_in_editing.values.route.coordinates = e.routes[0].coordinates;
             route_in_editing.values.route.waypoints = e.routes[0].waypoints;
             // Prevent Error on first Edit.
-            if (route_previously_in_editing === undefined) {
+            if (route_previously_in_editing === undefined || route_in_editing === route_previously_in_editing) {
                 route_previously_in_editing = {};
                 route_previously_in_editing.id = {};
             };
@@ -130,29 +131,49 @@ function initMap() {
                 for (var i = 0; i < stageid_to_visalizedRoute.length; i++) {
                     // Add deleted visualization
                     if (stageid_to_visalizedRoute[i].stageid === route_previously_in_editing.id) {
-                        map.addLayer(stageid_to_visalizedRoute[i].layer);
+                        get_stages_and_visualize(route_previously_in_editing.id);
+                        /*map.addLayer(stageid_to_visalizedRoute[i].actualLayer);
+                        layerControl.addOverlay(stageid_to_visalizedRoute[i].actualLayer, route_previously_in_editing.id);*/
                     }
                     // Delete current Route visualization
                     if (stageid_to_visalizedRoute[i].stageid === route_in_editing.id) {
-                        map.removeLayer(stageid_to_visalizedRoute[i].layer);
-                        break;
+                        map.removeLayer(stageid_to_visalizedRoute[i].geojsonRoute);
+                        layerControl.removeLayer(stageid_to_visalizedRoute[i].actualLayer);
                     }
                 }
             }
             // Save updated Routes in DB
-            save_object_in_db(route_in_editing, 'POST', '/api/' + route_in_editing.id);
-            // Refresh previously visualized and now removed Route and visualize it again
-            if (route_previously_in_editing !== route_in_editing && typeof route_previously_in_editing.id !== 'object') {
-                duplicateSafe_get_stages_and_visualize(route_previously_in_editing.id);
-            }
+            save_stage_in_db(route_in_editing, 'POST', '/api/' + route_in_editing.id);
             map.invalidateSize();
         }
     });
 }
+
 /**
- * Adds Popup with Form to Create Object.
+ * Adds Popup with form to Create Misc Object
  */
-function addObjectPopup(that){
+function addMiscellaneousPopup(that) {
+    var tmp = '<form id="saveMarker" class="tabledisplay">' +
+        '<p><label> <strong>Name: </strong></label>' +
+        '<input type="text" id="name" name="name" required="true"/>' +
+        '</p><br><p><label><strong>Type: </strong></label>' +
+        '<select type="text" id="type" name="type" required="true"/>' +
+        '<option value="Misc">Miscellaneous</option></select>' +
+        '<input class="hidden"  min="0" id="cap" name="capacity" value="-9999"/>' +
+        '<input class="hidden"  min="0" id="price" name="price" value ="-9999"/>' +
+        '</p><br><p><label><strong>Picture: </strong></label>' +
+        '<input type="text" id="picture" name="picture"/>' +
+        '</p><br><p><label><strong>Description: </strong></label>' +
+        '<textarea class="form-control" rows="1" id="info" name="description"></textarea>' +
+        '<p><br><div style="text-align:center;"><button type="submit" value="Save" class="btn btn-primary trigger-submit">Save</button></div>' + '</div>' +
+        '</form>';
+    createObjectCreationPopup(tmp);
+}
+
+/**
+ * Adds Popup with Form to Create Parking or Stands Object.
+ */
+function addParkingStandsPopup(that){
     // Input form for Objects
     var tmp = '<form id="saveMarker" class="tabledisplay">' +
     '<p><label> <strong>Name: </strong></label>' +
@@ -166,13 +187,17 @@ function addObjectPopup(that){
     '<input type="number" min="0" id="price" name="price" required"true">' +
     '</p><br><p><label><strong>Description: </strong></label>' +
     '<textarea class="form-control" rows="1" id="info" name="description"></textarea>' +
-    '<p><br><div style="text-align:center;"><button type="submit" value="Save" class="btn btn-primary trigger-submit">Save</button></div>' + '</div>' +
+    '<input class="hidden" value="-9999" type="text" id="picture" name="picture"/>' +
+    '<div style="text-align:center;"><button type="submit" value="Save" class="btn btn-primary trigger-submit">Save</button></div>' + '</div>' +
     '</form>';
+    createObjectCreationPopup(tmp);
+}
 
+function createObjectCreationPopup(htmlcontent) {
     // Close Selection Popup + Create new Input Popup
     map.closePopup();
     var marker = new L.marker(contextmenu_latlng).addTo(map);
-    var popup = new L.popup().setContent(tmp);
+    var popup = new L.popup().setContent(htmlcontent);
     marker.bindPopup(popup).openPopup().update();
 
     // Clear Marker when Popup is closed without saving
@@ -185,35 +210,48 @@ function addObjectPopup(that){
 
     // AJAX to save Object
     $('#saveMarker').submit(function (e) {
+        console.log("overwriting submit handler");
         e.preventDefault();
-        marker_not_saved = false;
-        // Create new Parking Object
-        route_in_editing.values.parking.push({
-            "name": this.elements["name"].value,
-            "type": this.elements["type"].value,
-            "coords": {
-                "x": contextmenu_latlng.lat,
-                "y": contextmenu_latlng.lng
-            },
-            "capacity":this.elements["capacity"].value,
-            "price": this.elements["price"].value,
-            "description": this.elements["description"].value
-        });
-        // Save updated Routes in DB
-        save_object_in_db(route_in_editing, 'POST', '/api/' + route_in_editing.id);
-
-        // Set marker to appropiate Icon
-        if (this.elements["type"].value === "Parking") {
-            marker.setIcon(L.icon({iconUrl: '/images/Parking_icon.svg',iconSize: [20, 20]}));
-        } else {
-            marker.setIcon(L.icon({iconUrl: '/images/Stands.png',iconSize: [20, 20]}));
-        }
-        // Replace Form Popup with Info Popup
-        map.closePopup();
-        marker.bindPopup(popup_template(this.elements["name"].value,route_in_editing.values.name, this.elements["type"].value)).openPopup();
-        // Refresh Item List
-        search_items();
+        save_object_in_db(this, marker);
     });
+}
+
+/**
+ * Saves Objected from the Form Submit Event to Database
+ * @param Form Submit Event
+ */
+
+function save_object_in_db(that, marker){
+    marker_not_saved = false;
+    // Create new Parking Object
+    route_in_editing.values.parking.push({
+        "name": that.elements["name"].value,
+        "type": that.elements["type"].value,
+        "coords": {
+            "x": contextmenu_latlng.lat,
+            "y": contextmenu_latlng.lng
+        },
+        "capacity":that.elements["capacity"].value,
+        "price": that.elements["price"].value,
+        "description": that.elements["description"].value,
+        "picture": that.elements["picture"].value
+    });
+    // Save updated Routes in DB
+    save_stage_in_db(route_in_editing, 'POST', '/api/' + route_in_editing.id);
+
+    // Set marker to appropiate Icon
+    if (that.elements["type"].value === "Parking") {
+        marker.setIcon(L.icon({iconUrl: '/images/Parking_icon.svg',iconSize: [20, 20]}));
+    } else if (that.elements["type"].value === "Stands"){
+        marker.setIcon(L.icon({iconUrl: '/images/Stands.png',iconSize: [20, 20]}));
+    } else {
+        marker.setIcon(L.icon({iconUrl: '/images/information.png',iconSize: [20, 20]}));
+    }
+    // Replace Form Popup with Info Popup
+    map.closePopup();
+    marker.bindPopup(popup_template(that.elements["name"].value,route_in_editing.values.name, that.elements["type"].value)).openPopup();
+    // Refresh Item List
+    search_items();
 }
 
 /**
@@ -274,13 +312,22 @@ function addStagesToMap(stages) {
             layer_ids.push(tmp._leaflet_id);
         }
 
+        // Delete old Visualizations
+        for (var z = 0; z < stageid_to_visalizedRoute.length; z++){
+            if (stageid_to_visalizedRoute[z].stageid === stages[i].id){
+                map.removeLayer(stageid_to_visalizedRoute[z].actualLayer);
+                layerControl.removeLayer(stageid_to_visalizedRoute[z].actualLayer);
+                stageid_to_visalizedRoute.splice(z,1);
+            }
+        }
+
         // Connect StageId to Visualization (blue route)
-        tmp = L.geoJSON(RouteToGeoJSON(object.route));
+        var geojsonRoute = L.geoJSON(RouteToGeoJSON(object.route)).addTo(layer);
         stageid_to_visalizedRoute.push({
             "stageid": stages[i].id,
-            "layer": tmp
+            "geojsonRoute": geojsonRoute,
+            "actualLayer": layer
         });
-        tmp.addTo(layer);
 
         // Connect StageID to Layer with complete Stage
         featureGroups.push({

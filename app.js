@@ -1,3 +1,7 @@
+/**
+ * Geosoftware I, SoSe 2017, final
+ * @author Jan Speckamp (428367)
+ */
 'use strict';
 
 var express = require("express");

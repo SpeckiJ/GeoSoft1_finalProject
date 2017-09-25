@@ -253,9 +253,11 @@ function submit_StageForm(e, that, method){
     }
     // Save in Database and Reload
     route_in_routeControl = false;
-    save_object_in_db(newobject, method, '/api/' + newobject.id);
+    save_stage_in_db(newobject, method, '/api/' + newobject.id);
     // Collapse Form
     $(".panel-collapse").collapse("hide");
+    sidebar.open("home");
+    removeTempMarkers();
     return false;
 }
 
@@ -263,14 +265,16 @@ function submit_StageForm(e, that, method){
  * Loads all requested Stages. Overwrites all Submit Handlers that are already present,
  */
 $(document).ready(function() {
-    console.log("LOADING: " + loaded_object_id.toString());
-    initMapwithRoutes(loaded_object_id);
-
+    // Special case for Mocha
+    if(loaded_object_id !== undefined) {
+        console.log("LOADING: " + loaded_object_id.toString());
+        initMapwithRoutes(loaded_object_id);
+    }
     // Overwrite Submit Form Handler to use AJAX
     $('#createStageForm').submit(function(e) {
         return submit_StageForm(e, this, 'PUT');
     });
-    
+
     // Custom readonly for LatLng Input fields
     $(".readonly").on('keydown paste', function(e){
         e.preventDefault();
@@ -306,7 +310,7 @@ $(document).ready(function() {
 /**
  * Saves Objects to DB. If route_in_routecontrol is false Route is retrieved from Server and visualized after saving.
  */
-function save_object_in_db(object, method, url) {
+function save_stage_in_db(object, method, url) {
     $.ajax({
         data: JSON.stringify(object),
         type: method,
@@ -349,7 +353,7 @@ function search_items() {
             || item.values.startDate.includes(searchterm)))
         {
             // Remove from view
-            console.log("removing item with id" + item.id);
+            console.log("Removing item with Id: '" + item.id + "' from List");
             $("#panel_" + item.id).remove();
             // Remove associated Objects
             for (var i = 0, n = item.values.parking.length; i<n;i++){
@@ -488,18 +492,27 @@ function createObjectPanel(panel, item){
         + item.type
         + "</h5>"
     );
-    panel.append("<h5><strong> Price: </strong>"
-        + item.price
-        + "</h5>"
-    );
-    panel.append("<h5><strong> Capacity: </strong>"
-        + item.capacity
-        + "</h5>"
-    );
+    if (item.price !== "-9999") {
+        panel.append("<h5><strong> Price: </strong>"
+            + item.price
+            + "</h5>"
+        );
+    }
+    if (item.capacity !== "-9999") {
+        panel.append("<h5><strong> Capacity: </strong>"
+            + item.capacity
+            + "</h5>"
+        );
+    }
     panel.append("<h5><strong> Description: </strong>"
         + item.description
         + "</h5>"
     );
+    if (item.picture !== "-9999") {
+        panel.append("<h5><strong> Picture: </strong></h5>"
+            + "<img src='" + item.picture + "'>"
+        );
+    }
 }
 
 /**
@@ -507,7 +520,7 @@ function createObjectPanel(panel, item){
  */
 function loadExternalGEOJSONTextField(){
     var json = $('#loadGeoJSONTextField').val();
-    save_object_in_db(json, 'PUT', '/api/' + json.id);
+    save_stage_in_db(JSON.parse(json), 'PUT', '/api/' + JSON.parse(json).id);
 }
 
 /**
@@ -515,6 +528,6 @@ function loadExternalGEOJSONTextField(){
  */
 function loadExternalFile(){
     $.get(document.getElementById('externalfile').value, function(response) {
-        save_object_in_db(response, 'PUT', '/api/' + response.id);
+        save_stage_in_db(JSON.parse(response), 'PUT', '/api/' + JSON.parse(response.id));
     });
 }
