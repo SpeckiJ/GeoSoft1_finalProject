@@ -83,7 +83,8 @@ describe('Testsuite', function() {
             });
         });
 
-        it("Returns 200, successfully saved", function (done) {
+        it("Returns 200, successfully saved via PUT", function (done) {
+            this.timeout(15000);
             request.put({
                 headers: {'content-type': 'application/json'},
                 url: apiUrl + 'test',
@@ -95,25 +96,16 @@ describe('Testsuite', function() {
             });
         });
 
-        it("Returns 200, successfully saved via PUT", function (done) {
-            request.put({
-                headers: {'content-type': 'application/json'},
-                url: apiUrl + 'test',
-                body: testobject
-            }, function (error, response, body) {
-                expect(response.statusCode).to.equal(200);
-                expect(body).to.equal("Successfully wrote Objects to Database");
-            });
-        });
-
         it("Returns 200, successfully saved via POST", function (done) {
+            this.timeout(5000);
             request.post({
                 headers: {'content-type': 'application/json'},
                 url: apiUrl + 'test',
                 body: testobject
             }, function (error, response, body) {
                 expect(response.statusCode).to.equal(200);
-                expect(body).to.equal("Successfully wrote Objects to Database");
+                expect(body).to.equal("Successfully changed Object in Database");
+                done();
             });
         });
 
