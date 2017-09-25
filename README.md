@@ -10,12 +10,12 @@
 - Manuelles Hinzufügen von Etappen  
     - ~~Eine Etappe hat einen Name, einen Start und ein Ziel, Termine (Anfangsdatum, Enddatum), Links zu Bildern, Webseite....~~
     - ~~Hochladen von Fotos ermöglichen (für Start und Ziel)~~
-    - Möglichkeit, Bilder und Beschreibungen als Marker ‘entlang der Strecke’ hinzuzufügen 
+    - ~~Möglichkeit, Bilder und Beschreibungen als Marker ‘entlang der Strecke’ hinzuzufügen~~
 
 - ~~Zur jeder Etappe soll ein Layer erstellt werden~~
 - Import Funktionalität 
-    - Hochladen von einzelnen Objekten oder ganzen Etappen aus geoJSON-Datei 
-    - textfeld-Import von GeoJSON Objekten
+    - ~~Hochladen von einzelnen Objekten oder ganzen Etappen aus geoJSON-Datei~~
+    - ~~textfeld-Import von GeoJSON Objekten~~
     - ~~Fehlerüberprüfung~~
 
 - ~~Von

@@ -64,7 +64,7 @@ function initMap() {
 
     // Setup Routing Plugin
     routeControl = L.Routing.control({
-        serviceUrl: "http://localhost:5000/route/v1",
+        // serviceUrl: "http://localhost:5000/route/v1", for development only
         routeWhileDragging: false,
         fitSelectedRoutes: false,
         show:true,
@@ -469,7 +469,7 @@ function navigateToClosestParkinglot(that){
     // If there is a nearest Parking create RM
     if (nearest !== undefined) {
         navigationControl = L.Routing.control({
-            serviceUrl: "http://localhost:5000/route/v1",
+            // serviceUrl: "http://localhost:5000/route/v1", for development only
             routeWhileDragging: false,
             fitSelectedRoutes: true,
             show: true,
