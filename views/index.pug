@@ -63,7 +63,10 @@ html
                 |  editing (green Route present). Editing is then done via leftclicking on the Map (Press+Hold on mobile Devices).
               h3 Permalinks:
               p Every Stage can be referenced by attaching the Stage ID to the URL. To reference multiple Stages they need to be seperated by commata.
-              h5 Icons by: https://icon-icons.com/
+              h3 Testing:
+              p The App comes prepackaged with Unit tests via Mocha.js. To run them simply run npm start. An example Route is provided in the /tests/demmoitems File. It can be imported into the App using the sidebar-Import-menu
+
+              h4 Icons by: https://icon-icons.com/
           #search.sidebar-pane
             form#searchform
               input(id='searchform_input' type='search', placeholder="Search", autocomplete="off", onchange="search_items(this.value)", oninput="this.onchange();", onkeypress="this.onchange();", onpaste="this.onchange();")
